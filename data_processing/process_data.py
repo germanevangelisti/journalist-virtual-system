@@ -1,4 +1,4 @@
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from config.llm_manager import LLMManager
 
 def generate_structured_data_with_langchain(cleaned_articles):

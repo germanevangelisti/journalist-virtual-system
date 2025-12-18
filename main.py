@@ -13,16 +13,20 @@ from data_processing.process_data import generate_structured_data_with_langchain
 def main():
     # Step 1: Data Extraction
     print("Extracting news data...")
-    url = "url_to_scrape"  # Replace with a real news site URL
+    # TODO: Use environment variable or argument for URL
+    url = "https://example.com"
     raw_articles = scrape_news(url)
 
     # If scraping fails, fallback to OCR (example image path provided)
     if not raw_articles:
-        print("Scraping failed. Falling back to OCR.")
-        image_path = "web_new_screenshot.png"  # Replace with a real image path
+        print("Scraping failed or returned no articles. Falling back to OCR.")
+        image_path = "web_new_screenshot.png"
         raw_text = extract_text_from_image(image_path)
-
-    raw_articles = [raw_text]
+        if raw_text:
+            raw_articles = [raw_text]
+        else:
+            print("OCR also failed. Exiting.")
+            return
 
     # Step 2: Data Cleaning and Normalization
     print("Cleaning and normalizing text data...")
@@ -31,13 +35,17 @@ def main():
     structured_data = generate_structured_data_with_langchain(cleaned_articles)
 
     normalized_data = [normalize_text_data(data) for data in structured_data]
-    print(normalized_data)
+    print(f"Normalized data: {normalized_data}")
 
-    # # Step 3: Vectorization
-    # print("Vectorizing text data...")
-    # corpus = [data["content"] for data in normalized_data]
-    # vectors, features = vectorize_text(corpus)
-    # print(vectors)
+    # Step 3: Vectorization
+    print("Vectorizing text data...")
+    corpus = [data["content"] for data in normalized_data if data.get("content")]
+    vectors, features = None, []
+    if corpus:
+        vectors, features = vectorize_text(corpus)
+        print(f"Vectors shape: {vectors.shape if vectors is not None else 'None'}")
+    else:
+        print("No content to vectorize.")
 
     # Step 4: Script Generation
     print("Generating scripts...")
@@ -57,15 +65,29 @@ def main():
     adapted_scripts = [adapt_script_with_langchain(script) for script in scripts]
 
     # Step 6: Data Analysis
-    # print("Analyzing trends...")
-    # if vectors is not None:
-    #     trend_vector = analyze_trends(vectors.toarray())
-    #     trends = {f"Feature {i}": trend for i, trend in enumerate(trend_vector)}
-    #     # Step 7: Data Visualization
-    #     print("Visualizing data...")
-    #     visualize_data(trends)
-    # else:
-    #     print("Vectorization failed, cannot analyze trends.")
+    print("Analyzing trends...")
+    if vectors is not None:
+        try:
+            trend_vector = analyze_trends(vectors.toarray())
+            if trend_vector is not None and len(trend_vector) > 0:
+                # Map features to trends if features exist
+                trends = {}
+                if len(features) == len(trend_vector):
+                     trends = {features[i]: trend_vector[i] for i in range(len(features))}
+                else:
+                     trends = {f"Feature {i}": trend for i, trend in enumerate(trend_vector)}
+
+                # Step 7: Data Visualization
+                print("Visualizing data...")
+                # visualization might block execution in some environments, usually show() blocks
+                # We will call it but be aware it opens a window
+                visualize_data(trends)
+            else:
+                 print("Trend vector is empty.")
+        except Exception as e:
+            print(f"Error analyzing trends: {e}")
+    else:
+        print("Vectorization failed or no vectors, cannot analyze trends.")
 
     # Output the results
     print("Final Adapted Scripts for Avatar Presentation:")

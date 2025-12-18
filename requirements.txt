@@ -4,4 +4,7 @@ pytesseract
 Pillow
 scikit-learn
 matplotlib
-langchain 
+langchain
+langchain-openai
+langchain-community
+python-dotenv
