@@ -15,8 +15,8 @@ def clean_text(text):
         text = text.lower()
         # Remove HTML tags
         text = re.sub(r'<[^>]+>', '', text)
-        # Remove non-alphanumeric characters (except spaces)
-        text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
+        # Remove non-alphanumeric characters (except spaces and punctuation)
+        text = re.sub(r'[^a-zA-Z0-9\s.,;:!?\'"-]', '', text)
         # Remove extra whitespace
         text = re.sub(r'\s+', ' ', text).strip()
         return text
